@@ -1,0 +1,4 @@
+graph cityNetwork {
+  node [shape=box, style=filled, fillcolor=lightblue];
+  edge [color=blue];
+}
