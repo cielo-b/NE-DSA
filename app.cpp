@@ -488,85 +488,84 @@ public:
 
     bool loadFromCSV(const string &filename)
     {
-        try
+        ifstream csvFile(filename);
+        if (!csvFile.is_open())
         {
-
-            ifstream csvFile(filename);
-            if (!csvFile.is_open())
-            {
-                cerr << RED << "[Error]: Could not open file " << filename << RESET << endl;
-                return false;
-            }
-
-            cities.clear();
-            adjacencyList.clear();
-
-            string line;
-            bool readingcities = false, readingRoads = false;
-
-            while (getline(csvFile, line))
-            {
-                if (line.empty())
-                    continue;
-
-                if (line == "city Data")
-                {
-                    readingcities = true;
-                    readingRoads = false;
-                    getline(csvFile, line);
-                    continue;
-                }
-                else if (line == "Road Connections")
-                {
-                    readingcities = false;
-                    readingRoads = true;
-                    getline(csvFile, line);
-                    continue;
-                }
-
-                stringstream ss(line);
-                string token;
-                vector<string> tokens;
-
-                while (getline(ss, token, ','))
-                {
-                    tokens.push_back(token);
-                }
-
-                if (readingcities && tokens.size() == 4)
-                {
-                    try
-                    {
-                        addcity(tokens[0], tokens[1]);
-                    }
-                    catch (...)
-                    {
-                        cerr << RED << "[Error]: Invalid city data in line: " << line << RESET << endl;
-                    }
-                }
-                else if (readingRoads && tokens.size() == 5)
-                {
-                    try
-                    {
-                        float budget = stoi(tokens[4]);
-                        addRoad(tokens[0], tokens[2], budget);
-                    }
-                    catch (...)
-                    {
-                        cerr << RED << "[Error]: Invalid road data in line: " << line << RESET << endl;
-                    }
-                }
-            }
-
-            csvFile.close();
-            cout << GREEN << "[Success]: Data loaded from " << filename << RESET << endl;
-            return true;
-        }
-        catch (...)
-        {
-            cerr << RED << "[Error]: Error occurred while loading data from CSV " << RESET << endl;
+            cerr << RED << "[Error]: Could not open file " << filename << RESET << endl;
             return false;
         }
+
+        cities.clear();
+        adjacencyList.clear();
+
+        string line;
+        bool readingCities = false, readingRoads = false;
+
+        while (getline(csvFile, line))
+        {
+            if (line.empty())
+                continue;
+
+            if (line == "city Data")
+            {
+                readingCities = true;
+                readingRoads = false;
+                getline(csvFile, line); // skip header
+                continue;
+            }
+            else if (line == "Road Connections")
+            {
+                readingCities = false;
+                readingRoads = true;
+                getline(csvFile, line); // skip header
+                continue;
+            }
+
+            stringstream ss(line);
+            string token;
+            vector<string> tokens;
+
+            while (getline(ss, token, ','))
+            {
+                tokens.push_back(token);
+            }
+
+            if (readingCities && tokens.size() >= 2)
+            {
+                // tokens[0]: ID, tokens[1]: Name
+                string id = tokens[0];
+                string name = tokens[1];
+                // Avoid duplicate insertions
+                if (!cityExists(id))
+                    cities.emplace(id, city(id, name));
+            }
+            else if (readingRoads && tokens.size() >= 5)
+            {
+                // tokens[0]: From ID, tokens[2]: To ID, tokens[4]: budget
+                string fromId = tokens[0];
+                string toId = tokens[2];
+                int budget = 0;
+                try
+                {
+                    budget = stoi(tokens[4]);
+                }
+                catch (...)
+                {
+                    cerr << RED << "[Error]: Invalid budget in line: " << line << RESET << endl;
+                    continue;
+                }
+                // Only add if both cities exist and road doesn't exist
+                if (cityExists(fromId) && cityExists(toId) && !roadExists(fromId, toId) && fromId != toId)
+                {
+                    adjacencyList[fromId].emplace_back(toId, budget);
+                    adjacencyList[toId].emplace_back(fromId, budget);
+                }
+            }
+        }
+
+        csvFile.close();
+        cout << GREEN << "[Success]: Data loaded from " << filename << RESET << endl;
+        return true;
     }
 
     void printGraph()
