@@ -1,5 +1,21 @@
 city Data
 ID,Name
+1,Kigali
+2,Huye
+3,Muhanga
+4,Musanze
+5,Nyagatare
+6,Rubavu
+7,Rusizi
 
 Road Connections
 From ID,From Name,To ID,To Name,budget (billion)
+1,Kigali,4,Musanze,28
+1,Kigali,5,Nyagatare,70
+1,Kigali,3,Muhanga,28
+2,Huye,3,Muhanga,56
+2,Huye,7,Rusizi,80
+3,Muhanga,7,Rusizi,117
+3,Muhanga,4,Musanze,66
+4,Musanze,6,Rubavu,33
+4,Musanze,5,Nyagatare,96

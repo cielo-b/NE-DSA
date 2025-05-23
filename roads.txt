@@ -2,11 +2,16 @@
 
 Nbr | Road                             | Budget
 -----------------------------------------------
-  1 | irumva (1) <--> regis (2)       | 3 billion (s)
+  1 | Kigali (1) <--> Musanze (4)     | 28 billion (s)
+2   | Kigali (1) <--> Nyagatare (5)   | 70 billion (s)
+3   | Kigali (1) <--> Muhanga (3)     | 28 billion (s)
+4   | Huye (2) <--> Muhanga (3)       | 56 billion (s)
+5   | Huye (2) <--> Rusizi (7)        | 80 billion (s)
+6   | Muhanga (3) <--> Rusizi (7)     | 117 billion (s)
+7   | Muhanga (3) <--> Musanze (4)    | 66 billion (s)
+8   | Musanze (4) <--> Rubavu (6)     | 33 billion (s)
+9   | Musanze (4) <--> Nyagatare (5)  | 96 billion (s)
 
 === UNCONNECTED CITIES ===
 
 All cities are connected!
-
-
-

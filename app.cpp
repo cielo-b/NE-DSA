@@ -124,7 +124,7 @@ public:
         return true;
     }
 
-    bool addRoad(const string &id1, const string &id2, double budget)
+    bool addRoad(const string &id1, const string &id2, float budget)
     {
         if (!cityExists(id1))
         {
@@ -548,7 +548,7 @@ public:
                 {
                     try
                     {
-                        int budget = stoi(tokens[4]);
+                        float budget = stoi(tokens[4]);
                         addRoad(tokens[0], tokens[2], budget);
                     }
                     catch (...)
@@ -856,7 +856,7 @@ int main()
             displayHeader("Add Road Connection");
             string id1 = getStringInput("Enter first city ID: ");
             string id2 = getStringInput("Enter second city ID: ");
-            int budget = getIntegerInput("Enter budget (billion): ", 1);
+            float budget = getIntegerInput("Enter budget (billion): ", 1);
             cityNetwork.addRoad(id1, id2, budget);
             pressEnterToContinue();
             break;
