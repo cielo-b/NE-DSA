@@ -2,7 +2,11 @@
 
 Nbr | Road                             | Budget
 -----------------------------------------------
+  1 | irumva (1) <--> regis (2)       | 3 billion (s)
 
 === UNCONNECTED CITIES ===
 
-regis (reis)
+All cities are connected!
+
+
+

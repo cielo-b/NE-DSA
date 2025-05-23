@@ -39,6 +39,7 @@ void displayHeader(const string &title)
     clearScreen();
     cout << BOLD << CYAN << "========================================\n";
     cout << "  CITY ROADS NETWORK SYSTEM\n";
+    cout << "      Developed by D Regis\n";
     cout << "========================================\n"
          << RESET;
     cout << BOLD << ">> " << title << "\n";
@@ -296,7 +297,12 @@ public:
                      << endl;
             }
             // Step 5: Print the matrices for verification
-            cout << "Connection Matrix:" << endl;
+            cout << MAGENTA << "\n connections:\n"
+                 << RESET;
+            cout << CYAN << "----------------------------------------\n"
+                 << RESET;
+            cout << CYAN << "----------------------------------------\n"
+                 << RESET;
             for (const auto &row : connectionMatrix)
             {
                 for (const auto &val : row)
@@ -320,7 +326,12 @@ public:
                 cout << setw(8) << city.second.id << setw(20) << city.second.name
                      << endl;
             }
-            cout << "\nBudget Matrix:" << endl;
+            cout << MAGENTA << "\n Budget:\n"
+                 << RESET;
+            cout << CYAN << "----------------------------------------\n"
+                 << RESET;
+            cout << CYAN << "----------------------------------------\n"
+                 << RESET;
             for (const auto &row : budgetMatrix)
             {
                 for (const auto &val : row)
@@ -347,9 +358,6 @@ public:
         }
         else
         {
-            // operation is ALL
-            // print the cities, the roads and the matrices
-            displayHeader("All data");
             cout << MAGENTA << "\n cities (" << cities.size() << "):\n"
                  << RESET;
             cout << CYAN << "----------------------------------------\n"
@@ -357,12 +365,17 @@ public:
             cout << CYAN << "----------------------------------------\n"
                  << RESET;
 
-            for (const auto &city : cities)
+            for (const auto &city : this->cities)
             {
-                cout << setw(8) << city.at(0) << setw(20) << city.at(1)
+                cout << setw(8) << city.second.id << setw(20) << city.second.name
                      << endl;
             }
-            cout << "Connection Matrix:" << endl;
+            cout << MAGENTA << "\n connections:\n"
+                 << RESET;
+            cout << CYAN << "----------------------------------------\n"
+                 << RESET;
+            cout << CYAN << "----------------------------------------\n"
+                 << RESET;
             for (const auto &row : connectionMatrix)
             {
                 for (const auto &val : row)
@@ -371,7 +384,12 @@ public:
                 }
                 cout << endl;
             }
-            cout << "\nBudget Matrix:" << endl;
+            cout << MAGENTA << "\n Budget:\n"
+                 << RESET;
+            cout << CYAN << "----------------------------------------\n"
+                 << RESET;
+            cout << CYAN << "----------------------------------------\n"
+                 << RESET;
             for (const auto &row : budgetMatrix)
             {
                 for (const auto &val : row)
@@ -657,13 +675,13 @@ public:
 
         if (!textFile.is_open())
         {
-            cerr << RED << "❌ Error: Could not open file " << filename << RESET << endl;
+            cerr << RED << "[Error]Could not open file " << filename << RESET << endl;
             return;
         }
 
         if (!textFile2.is_open())
         {
-            cerr << RED << "❌ Error: Could not open file " << filename2 << RESET << endl;
+            cerr << RED << "[Error]Could not open file " << filename2 << RESET << endl;
             return;
         }
 
@@ -821,16 +839,16 @@ int main()
         {
             // first get the number of cities
             // displayHeader("Enter number of cities to be added");
-            int n = getIntegerInput("Enter number of cities to be added: ");
-            for (int i = 1; i <= n; i++)
+            displayHeader("Add city");
+            int n = getIntegerInput("Enter number of cities to be added: ", 1);
+            for (int i = 0; i < n; i++)
             {
 
-                displayHeader("Add city");
                 string id = getStringInput("Enter city ID: ");
                 string name = getStringInput("Enter city name: ");
                 cityNetwork.addcity(id, name);
-                pressEnterToContinue();
             }
+            pressEnterToContinue();
             break;
         }
         case 2:
@@ -971,7 +989,8 @@ int main()
             cout << GREEN << "Saving data before exiting...\n"
                  << RESET;
             cityNetwork.saveToCSV("cities.csv");
-            cout << GREEN << "Thank you for using city Network Management System.\n";
+            cout << GREEN << "Thank you for using city Network Management System developed by D Regis.\n"
+                 << RESET;
             cout << "Goodbye!\n"
                  << RESET;
             return 0;
