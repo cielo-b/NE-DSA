@@ -124,7 +124,7 @@ public:
         return true;
     }
 
-    bool addRoad(const string &id1, const string &id2, float budget)
+    bool addRoad(const string &id1, const string &id2, float budget = 0)
     {
         if (!cityExists(id1))
         {
@@ -150,18 +150,105 @@ public:
                  << RESET;
             return false;
         }
-        if (budget <= 0)
-        {
-            cout << RED << "[Error]: budget must be positive.\n"
-                 << RESET;
-            return false;
-        }
 
         adjacencyList[id1].emplace_back(id2, budget);
         adjacencyList[id2].emplace_back(id1, budget);
-        cout << GREEN << "[Success]: Road connection added successfully.\n"
+        cout << GREEN << "[Success]: Road connection added successfully";
+        if (budget > 0)
+        {
+            cout << " with budget " << budget << " billion";
+        }
+        cout << ".\n"
              << RESET;
         return true;
+    }
+
+    void updateBudgetByCityNames()
+    {
+        displayHeader("Update Road Budget by City Names");
+        string name1 = getStringInput("Enter first city name: ");
+        string name2 = getStringInput("Enter second city name: ");
+
+        // Search for cities by name
+        vector<city *> results1 = searchcities(name1);
+        vector<city *> results2 = searchcities(name2);
+
+        if (results1.empty() || results2.empty())
+        {
+            cout << RED << "[Error]: One or both cities not found.\n"
+                 << RESET;
+            pressEnterToContinue();
+            return;
+        }
+
+        // Get exact matches
+        city *city1 = nullptr;
+        city *city2 = nullptr;
+
+        for (auto c : results1)
+        {
+            if (toLower(c->name) == toLower(name1))
+            {
+                city1 = c;
+                break;
+            }
+        }
+
+        for (auto c : results2)
+        {
+            if (toLower(c->name) == toLower(name2))
+            {
+                city2 = c;
+                break;
+            }
+        }
+
+        if (!city1 || !city2)
+        {
+            cout << RED << "[Error]: Could not find exact matches for both city names.\n"
+                 << RESET;
+            pressEnterToContinue();
+            return;
+        }
+
+        if (!roadExists(city1->id, city2->id))
+        {
+            cout << RED << "[Error]: No road exists between " << city1->name << " and " << city2->name << ".\n"
+                 << RESET;
+            pressEnterToContinue();
+            return;
+        }
+
+        // Check if budget already exists
+        int *existingBudget = budget(city1->id, city2->id);
+        if (existingBudget && *existingBudget > 0)
+        {
+            cout << YELLOW << "[Warning]: This road already has a budget of " << *existingBudget << " billion.\n"
+                 << RESET;
+            string confirm = getStringInput("Are you sure you want to update it? (y/n): ");
+            if (toLower(confirm) != "y")
+            {
+                cout << YELLOW << "Budget update cancelled.\n"
+                     << RESET;
+                pressEnterToContinue();
+                return;
+            }
+        }
+
+        float newBudget = getIntegerInput("Enter new budget (billion) (0 to skip): ", 0);
+        if (newBudget > 0)
+        {
+            *existingBudget = newBudget;
+            cout << GREEN << "[Success]: Budget updated to " << newBudget << " billion.\n"
+                 << RESET;
+        }
+        else
+        {
+            cout << YELLOW << "Budget remains unchanged.\n"
+                 << RESET;
+        }
+
+        pressEnterToContinue();
     }
 
     bool updatecity(const string &id, const string &newName)
@@ -201,6 +288,45 @@ public:
         cout << GREEN << "[Success]: city deleted successfully.\n"
              << RESET;
         return true;
+    }
+
+    int getIntegerInput(const string &prompt, int min = 0)
+    {
+        int value;
+        while (true)
+        {
+            cout << BOLD << prompt << RESET;
+            cin >> value;
+            if (cin.fail() || value < min)
+            {
+                cin.clear();
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                cout << RED << "Invalid input. Please enter a number";
+                if (min > 0)
+                    cout << " >= " << min;
+                cout << ".\n"
+                     << RESET;
+            }
+            else
+            {
+                cin.ignore(numeric_limits<streamsize>::max(), '\n');
+                return value;
+            }
+        }
+    }
+
+    string getStringInput(const string &prompt, bool toLowercase = false)
+    {
+        string input;
+        cout << BOLD << prompt << RESET;
+        getline(cin, input);
+        if (toLowercase)
+        {
+            transform(input.begin(), input.end(), input.begin(),
+                      [](unsigned char c)
+                      { return tolower(c); });
+        }
+        return input;
     }
 
     bool deleteRoad(const string &id1, const string &id2)
@@ -739,44 +865,6 @@ public:
 };
 
 // ====================== INPUT FUNCTIONS ======================
-int getIntegerInput(const string &prompt, int min = 0)
-{
-    int value;
-    while (true)
-    {
-        cout << BOLD << prompt << RESET;
-        cin >> value;
-        if (cin.fail() || value < min)
-        {
-            cin.clear();
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            cout << RED << "Invalid input. Please enter a number";
-            if (min > 0)
-                cout << " >= " << min;
-            cout << ".\n"
-                 << RESET;
-        }
-        else
-        {
-            cin.ignore(numeric_limits<streamsize>::max(), '\n');
-            return value;
-        }
-    }
-}
-
-string getStringInput(const string &prompt, bool toLowercase = false)
-{
-    string input;
-    cout << BOLD << prompt << RESET;
-    getline(cin, input);
-    if (toLowercase)
-    {
-        transform(input.begin(), input.end(), input.begin(),
-                  [](unsigned char c)
-                  { return tolower(c); });
-    }
-    return input;
-}
 
 void displaycity(const city *city)
 {
@@ -813,9 +901,10 @@ void showMainMenu()
     cout << BOLD << "11. " << RESET << "Generate visualization\n";
     cout << BOLD << "12. " << RESET << "Display road matrix\n";
     cout << BOLD << "13. " << RESET << "Display budget matrix\n";
-    cout << BOLD << "14. " << RESET << "Display all data\n";
-    cout << BOLD << "15 " << RESET << "Display all cities\n";
-    cout << BOLD << "16 " << RESET << "Exit\n";
+    cout << BOLD << "14. " << RESET << "Update city road budget\n";
+    cout << BOLD << "15. " << RESET << "Display all data\n";
+    cout << BOLD << "16 " << RESET << "Display all cities\n";
+    cout << BOLD << "17 " << RESET << "Exit\n";
     cout << CYAN << "----------------------------------------\n"
          << RESET;
 }
@@ -830,7 +919,7 @@ int main()
     while (true)
     {
         showMainMenu();
-        int choice = getIntegerInput("Enter your choice (1-12): ");
+        int choice = cityNetwork.getIntegerInput("Enter your choice (1-17): ");
 
         switch (choice)
         {
@@ -839,12 +928,12 @@ int main()
             // first get the number of cities
             // displayHeader("Enter number of cities to be added");
             displayHeader("Add city");
-            int n = getIntegerInput("Enter number of cities to be added: ", 1);
+            int n = cityNetwork.getIntegerInput("Enter number of cities to be added: ", 1);
             for (int i = 0; i < n; i++)
             {
 
-                string id = getStringInput("Enter city ID: ");
-                string name = getStringInput("Enter city name: ");
+                string id = cityNetwork.getStringInput("Enter city ID: ");
+                string name = cityNetwork.getStringInput("Enter city name: ");
                 cityNetwork.addcity(id, name);
             }
             pressEnterToContinue();
@@ -853,9 +942,34 @@ int main()
         case 2:
         {
             displayHeader("Add Road Connection");
-            string id1 = getStringInput("Enter first city ID: ");
-            string id2 = getStringInput("Enter second city ID: ");
-            float budget = getIntegerInput("Enter budget (billion): ", 1);
+            string id1 = cityNetwork.getStringInput("Enter first city ID: ");
+            string id2 = cityNetwork.getStringInput("Enter second city ID: ");
+
+            // Make budget optional
+            string budgetInput = cityNetwork.getStringInput("Enter budget (billion) or leave blank to skip: ");
+            float budget = 0;
+            if (!budgetInput.empty())
+            {
+                try
+                {
+                    budget = stof(budgetInput);
+                    if (budget < 0)
+                    {
+                        cout << RED << "[Error]: Budget cannot be negative.\n"
+                             << RESET;
+                        pressEnterToContinue();
+                        break;
+                    }
+                }
+                catch (...)
+                {
+                    cout << RED << "[Error]: Invalid budget value.\n"
+                         << RESET;
+                    pressEnterToContinue();
+                    break;
+                }
+            }
+
             cityNetwork.addRoad(id1, id2, budget);
             pressEnterToContinue();
             break;
@@ -863,8 +977,8 @@ int main()
         case 3:
         {
             displayHeader("Update city");
-            string id = getStringInput("Enter city ID to update: ");
-            string newName = getStringInput("Enter new name (leave blank to keep current): ");
+            string id = cityNetwork.getStringInput("Enter city ID to update: ");
+            string newName = cityNetwork.getStringInput("Enter new name (leave blank to keep current): ");
             city *city = cityNetwork.getcity(id);
             if (city)
             {
@@ -878,7 +992,7 @@ int main()
         case 4:
         {
             displayHeader("Delete city");
-            string id = getStringInput("Enter city ID to delete: ");
+            string id = cityNetwork.getStringInput("Enter city ID to delete: ");
             cityNetwork.deletecity(id);
             pressEnterToContinue();
             break;
@@ -886,8 +1000,8 @@ int main()
         case 5:
         {
             displayHeader("Delete Road Connection");
-            string id1 = getStringInput("Enter first city ID: ");
-            string id2 = getStringInput("Enter second city ID: ");
+            string id1 = cityNetwork.getStringInput("Enter first city ID: ");
+            string id2 = cityNetwork.getStringInput("Enter second city ID: ");
             cityNetwork.deleteRoad(id1, id2);
             pressEnterToContinue();
             break;
@@ -895,7 +1009,7 @@ int main()
         case 6:
         {
             displayHeader("View city");
-            string id = getStringInput("Enter city ID: ");
+            string id = cityNetwork.getStringInput("Enter city ID: ");
             displaycity(cityNetwork.getcity(id));
             pressEnterToContinue();
             break;
@@ -903,8 +1017,8 @@ int main()
         case 7:
         {
             displayHeader("View Road Details");
-            string id1 = getStringInput("Enter first city ID: ");
-            string id2 = getStringInput("Enter second city ID: ");
+            string id1 = cityNetwork.getStringInput("Enter first city ID: ");
+            string id2 = cityNetwork.getStringInput("Enter second city ID: ");
             int *budget = cityNetwork.budget(id1, id2);
             if (budget)
             {
@@ -939,7 +1053,7 @@ int main()
         case 10:
         {
             displayHeader("Search cities");
-            string query = getStringInput("Enter search query: ");
+            string query = cityNetwork.getStringInput("Enter search query: ");
             vector<city *> results = cityNetwork.searchcities(query);
             if (results.empty())
             {
@@ -974,16 +1088,19 @@ int main()
             pressEnterToContinue();
             break;
         case 14:
+            cityNetwork.updateBudgetByCityNames();
+            break;
+        case 15:
             displayHeader("Display all data");
             cityNetwork.generateMatrices(cityNetwork.adjacencyList, "ALL");
             pressEnterToContinue();
             break;
-        case 15:
+        case 16:
             displayHeader("Display all cities");
             cityNetwork.generateMatrices(cityNetwork.adjacencyList, "CITIES");
             pressEnterToContinue();
             break;
-        case 16:
+        case 17:
             displayHeader("Exit");
             cout << GREEN << "Saving data before exiting...\n"
                  << RESET;
